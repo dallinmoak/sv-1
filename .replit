@@ -1,0 +1,9 @@
+modules = ["nodejs-20:v10-20231103-2b03dda"]
+run = "npm run dev"
+
+[nix]
+channel = "stable-22_11"
+
+[deployment]
+run = ["sh", "-c", "npm run dev"]
+deploymentTarget = "gce"
