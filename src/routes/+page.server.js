@@ -7,6 +7,6 @@ export async function load() {
 		}
 	});
 	const data = await res.json();
-	const pageData = { loaded: data ? true : false, transits: data, userSettings: {distance: 10}};
+	const pageData = { loaded: data ? true : false, transits: data, userSettings: {distance: 52}};
 	return pageData;
 }

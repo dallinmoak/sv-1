@@ -4,21 +4,47 @@
 	import { onMount } from 'svelte';
 	import { format } from 'date-fns';
 
-	const driverOptions = Array.from(new Set(data.transits.map((transit) => transit.driver)));
-
-	const carOptions = Array.from(new Set(data.transits.map((transit) => transit.car)));
-
 	let totalCurrentDriver = '';
 	let totalCurrentCar = '';
 	let totalDistance = 0;
 
+	const populateFilterOptions = (sourceList, key) => {
+		const simpleArray = sourceList.map((item) => item[key]);
+		const uniqueArray = Array.from(new Set(simpleArray));
+		return uniqueArray;
+	};
+
+	let driverOptions = populateFilterOptions(data.transits, 'driver');
+	let carOptions = populateFilterOptions(data.transits, 'car');
+
 	const updateTotalDistance = () => {
-		totalDistance =
-			data.transits.filter((transit) => {
-				const driverMatch = transit.driver == totalCurrentDriver || totalCurrentDriver == 'any';
-				const carMatch = transit.car == totalCurrentCar || totalCurrentCar == 'any';
-				return driverMatch && carMatch;
-			}).length * 2 *	data.userSettings.distance;
+		const filteredTransits = $transits.filter((transit) => {
+			const driverMatch = transit.driver == totalCurrentDriver || totalCurrentDriver == 'any';
+			const carMatch = transit.car == totalCurrentCar || totalCurrentCar == 'any';
+			return driverMatch && carMatch;
+		});
+		let currentTotal = 0;
+		filteredTransits.forEach((transit) => {
+			const distance = transit.custom_distance
+				? transit.custom_distance
+				: data.userSettings.distance;
+			currentTotal += distance * 2;
+		});
+		totalDistance = currentTotal;
+	};
+
+	const getTransits = async () => {
+		const res = await fetch('https://crud-5h2d.api.codehooks.io/dev/transits', {
+			method: 'GET',
+			headers: {
+				'x-api-key': 'f2a6d690-3f33-454a-b94c-5c1ae6b9422b',
+				'content-type': 'application/json'
+			}
+		});
+		const data = await res.json();
+		transits.set(data);
+		driverOptions = populateFilterOptions($transits, 'driver');
+		carOptions = populateFilterOptions($transits, 'car');
 	};
 
 	onMount(() => {
@@ -27,6 +53,8 @@
 </script>
 
 {#if data.loaded}
+	<p>default transit distance: {data.userSettings.distance} miles</p>
+	<button on:click={getTransits}>refresh</button>
 	<table>
 		<thead>
 			<tr>
@@ -39,12 +67,14 @@
 			</tr>
 		</thead>
 		<tbody>
-			{#each data.transits as transit, i}
+			{#each $transits as transit, i}
 				<tr>
 					<td>{format(new Date(transit.date), 'eee LLL do')}</td>
 					<td>{transit.driver}</td>
 					<td>{transit.car}</td>
-					<td>{data.userSettings.distance} miles</td>
+					<td
+						>{transit.custom_distance ? transit.custom_distance : data.userSettings.distance} miles</td
+					>
 					<td><button>edit</button></td>
 					<td><button>delete</button></td>
 				</tr>
