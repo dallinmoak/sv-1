@@ -3,6 +3,7 @@
 	export let data;
 	import { onMount } from 'svelte';
 	import { format } from 'date-fns';
+	import TableRow from './TableRow.svelte';
 
 	let totalCurrentDriver = '';
 	let totalCurrentCar = '';
@@ -67,16 +68,7 @@
 		</thead>
 		<tbody>
 			{#each $transits as transit, i}
-				<tr>
-					<td>{format(new Date(transit.date), 'eee LLL do')}</td>
-					<td>{transit.driver}</td>
-					<td>{transit.car}</td>
-					<td
-						>{transit.custom_distance ? transit.custom_distance : data.userSettings.distance} miles</td
-					>
-					<td><button>edit</button></td>
-					<td><button>delete</button></td>
-				</tr>
+				<TableRow transit={transit} data={data} />
 			{/each}
 		</tbody>
 	</table>
